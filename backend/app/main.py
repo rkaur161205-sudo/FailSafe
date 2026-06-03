@@ -11,6 +11,7 @@ if not hasattr(bcrypt, "__about__"):
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.routes.auth import router as auth_router
 from app.routes.students import router as students_router
 from app.routes.hod import router as hod_router
@@ -34,6 +35,12 @@ app.include_router(students_router, prefix="/students", tags=["students"])
 app.include_router(hod_router, prefix="/hod", tags=["hod"])
 app.include_router(interventions_router, prefix="/interventions", tags=["interventions"])
 app.include_router(ml_router, prefix="/ml", tags=["ml"])
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BACKEND_DIR = os.path.dirname(BASE_DIR)
+STATIC_DIR = os.path.join(BACKEND_DIR, "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
