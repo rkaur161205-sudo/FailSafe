@@ -1,5 +1,14 @@
 import os
 
+import bcrypt
+
+
+if not hasattr(bcrypt, "__about__"):
+    class _MockAbout:
+        __version__ = getattr(bcrypt, "__version__", "4.0.0")
+
+    bcrypt.__about__ = _MockAbout()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import router as auth_router
