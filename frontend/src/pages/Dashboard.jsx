@@ -52,7 +52,9 @@ export default function Dashboard() {
     }
   }
 
-  useEffect(() => { fetchStudents(); }, []);
+  useEffect(() => {
+    fetchStudents();
+  }, []);
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -68,14 +70,11 @@ export default function Dashboard() {
     try {
       const form = new FormData();
       form.append("file", file);
-      const { data } = await client.post("/students/upload", form);
-      setUploadSuccess(`Upload complete — processed students successfully.`);
-      
-      // Instantly refresh list from database to ensure state syncs perfectly
+      await client.post("/students/upload", form);
+      setUploadSuccess("Upload complete — processed students successfully.");
       await fetchStudents();
-      
       setSelected(new Set());
-      fileRef.current.value = "";
+      if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
       setUploadError(err.response?.data?.detail || "Upload failed.");
     } finally {
@@ -102,10 +101,6 @@ export default function Dashboard() {
   async function handleBulkDelete() {
     if (selected.size === 0) return;
     if (!window.confirm(`Remove ${selected.size} student${selected.size !== 1 ? "s" : ""} and all their predictions?`)) return;
-    pushBulkDelete();
-  }
-
-  async function pushBulkDelete() {
     setBulkDeleting(true);
     try {
       await client.delete("/students/bulk", { data: { student_ids: [...selected] } });
@@ -118,11 +113,11 @@ export default function Dashboard() {
     }
   }
 
-  const sorted   = sortByRisk(students);
-  const total   = students.length;
-  const high    = students.filter(s => s.risk_label === "high").length;
-  const medium  = students.filter(s => s.risk_label === "medium").length;
-  const low     = students.filter(s => s.risk_label === "low").length;
+  const sorted = sortByRisk(students);
+  const total = students.length;
+  const high = students.filter(s => s.risk_label === "high").length;
+  const medium = students.filter(s => s.risk_label === "medium").length;
+  const low = students.filter(s => s.risk_label === "low").length;
   const allChecked = students.length > 0 && selected.size === students.length;
   const someChecked = selected.size > 0 && selected.size < students.length;
 
@@ -147,7 +142,8 @@ export default function Dashboard() {
         </button>
       </nav>
 
-      <nav className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      {/* Main Layout Area */}
+      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* Upload card */}
         <div className="rounded-2xl p-6" style={{ background: "#2a2a3c", border: "1px solid #3a3a4c" }}>
           <h2 className="text-base font-semibold mb-1" style={{ color: "#ececf1" }}>Upload Student CSV</h2>
@@ -174,7 +170,7 @@ export default function Dashboard() {
           {uploadSuccess && <p className="mt-3 text-sm" style={{ color: "#4ade80" }}>{uploadSuccess}</p>}
         </div>
 
-        {/* Stats */}
+        {/* Stats Section */}
         {!loading && total > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -191,7 +187,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Students table */}
+        {/* Students Table Section */}
         <div className="rounded-2xl overflow-hidden" style={{ background: "#2a2a3c", border: "1px solid #3a3a4c" }}>
           <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #3a3a4c" }}>
             <div>
@@ -272,7 +268,7 @@ export default function Dashboard() {
             </table>
           )}
         </div>
-      </nav>
+      </main>
     </div>
   );
 }
