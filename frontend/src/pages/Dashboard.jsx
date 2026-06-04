@@ -69,8 +69,11 @@ export default function Dashboard() {
       const form = new FormData();
       form.append("file", file);
       const { data } = await client.post("/students/upload", form);
-      setUploadSuccess(`Upload complete — ${data.uploaded} student${data.uploaded !== 1 ? "s" : ""} processed.`);
-      setStudents(data.students ?? []);
+      setUploadSuccess(`Upload complete — processed students successfully.`);
+      
+      // Instantly refresh list from database to ensure state syncs perfectly
+      await fetchStudents();
+      
       setSelected(new Set());
       fileRef.current.value = "";
     } catch (err) {
@@ -99,6 +102,10 @@ export default function Dashboard() {
   async function handleBulkDelete() {
     if (selected.size === 0) return;
     if (!window.confirm(`Remove ${selected.size} student${selected.size !== 1 ? "s" : ""} and all their predictions?`)) return;
+    pushBulkDelete();
+  }
+
+  async function pushBulkDelete() {
     setBulkDeleting(true);
     try {
       await client.delete("/students/bulk", { data: { student_ids: [...selected] } });
@@ -111,7 +118,7 @@ export default function Dashboard() {
     }
   }
 
-  const sorted  = sortByRisk(students);
+  const sorted   = sortByRisk(students);
   const total   = students.length;
   const high    = students.filter(s => s.risk_label === "high").length;
   const medium  = students.filter(s => s.risk_label === "medium").length;
@@ -134,21 +141,18 @@ export default function Dashboard() {
         </div>
         <button
           onClick={handleLogout}
-          className="text-sm px-3 py-1.5 rounded-lg transition-colors"
-          style={{ color: "#9b9bb4" }}
-          onMouseEnter={e => { e.target.style.color = "#ececf1"; e.target.style.background = "#3a3a4c"; }}
-          onMouseLeave={e => { e.target.style.color = "#9b9bb4"; e.target.style.background = "transparent"; }}
+          className="text-sm px-3 py-1.5 rounded-lg transition-colors text-[#9b9bb4] hover:text-[#ececf1] hover:bg-[#3a3a4c]"
         >
           Sign out
         </button>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <nav className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* Upload card */}
         <div className="rounded-2xl p-6" style={{ background: "#2a2a3c", border: "1px solid #3a3a4c" }}>
           <h2 className="text-base font-semibold mb-1" style={{ color: "#ececf1" }}>Upload Student CSV</h2>
           <p className="text-sm mb-4" style={{ color: "#9b9bb4" }}>
-            CSV must include the UCI student performance fields used by the model. See the README or `backend/ml/data/sample_students.csv` for the full schema.
+            CSV must include the UCI student performance fields used by the model. See the README for the full schema.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
@@ -161,10 +165,7 @@ export default function Dashboard() {
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: "#7c6af7" }}
-              onMouseEnter={e => { if (!uploading) e.target.style.background = "#6a59e0"; }}
-              onMouseLeave={e => e.target.style.background = "#7c6af7"}
+              className="px-5 py-2 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-[#7c6af7] hover:bg-[#6a59e0]"
             >
               {uploading ? "Uploading…" : "Upload Students"}
             </button>
@@ -205,8 +206,6 @@ export default function Dashboard() {
                 disabled={bulkDeleting}
                 className="text-sm px-4 py-1.5 rounded-lg font-medium disabled:opacity-50"
                 style={{ color: "#f87171", background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)" }}
-                onMouseEnter={e => { e.target.style.background = "rgba(248,113,113,0.2)"; }}
-                onMouseLeave={e => { e.target.style.background = "rgba(248,113,113,0.1)"; }}
               >
                 {bulkDeleting ? "Deleting…" : `Delete selected (${selected.size})`}
               </button>
@@ -250,8 +249,7 @@ export default function Dashboard() {
                         borderBottom: i < sorted.length - 1 ? "1px solid #3a3a4c" : "none",
                         background: isSelected ? "rgba(124,106,247,0.08)" : "transparent",
                       }}
-                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "#323248"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = isSelected ? "rgba(124,106,247,0.08)" : "transparent"; }}
+                      className="hover:bg-[#323248]"
                     >
                       <td className="pl-5 pr-2 py-4" onClick={e => e.stopPropagation()}>
                         <input
@@ -274,7 +272,7 @@ export default function Dashboard() {
             </table>
           )}
         </div>
-      </main>
+      </nav>
     </div>
   );
 }
