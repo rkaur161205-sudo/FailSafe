@@ -190,23 +190,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Model Insights */}
-        <div className="rounded-2xl p-6" style={{ background: "#2a2a3c", border: "1px solid #3a3a4c" }}>
-          <h2 className="text-base font-semibold mb-1" style={{ color: "#ececf1" }}>Model Insights</h2>
-          <p className="text-xs mb-5" style={{ color: "#9b9bb4" }}>Generated from the XGBoost model trained on the student dataset</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {(() => {
-              const apiBaseUrl = import.meta.env.VITE_API_URL || "https://failsafe-backend.onrender.com";
-              return (
-                <>
-                  <img src={`${apiBaseUrl}/ml/plots/feature_importance`} alt="Feature importance" className="w-full rounded-xl" />
-                  <img src={`${apiBaseUrl}/ml/plots/risk_distribution`} alt="Risk distribution" className="w-full rounded-xl" />
-                </>
-              );
-            })()}
-          </div>
-        </div>
-
         {/* Students table */}
         <div className="rounded-2xl overflow-hidden" style={{ background: "#2a2a3c", border: "1px solid #3a3a4c" }}>
           <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #3a3a4c" }}>
